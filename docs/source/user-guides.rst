@@ -114,7 +114,7 @@ Verifying Contracts
   .. code-block:: python
   
       contracts = client.context.engine_client.get_contracts()
-      verifying_contract = contracts.engine
+      verifying_contract = contracts.endpoint_addr
 
 .. note::
 
