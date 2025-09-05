@@ -184,9 +184,7 @@ class NadoBaseExecute:
         """
         return gen_order_verifying_contract(product_id)
 
-    def order_nonce(
-        self, recv_time_ms: Optional[int] = None, is_trigger_order: bool = False
-    ) -> int:
+    def order_nonce(self, recv_time_ms: Optional[int] = None) -> int:
         """
         Generate the order nonce. Used for oder placements and cancellations.
 
@@ -196,7 +194,7 @@ class NadoBaseExecute:
         Returns:
             int: The generated order nonce.
         """
-        return gen_order_nonce(recv_time_ms, is_trigger_order=is_trigger_order)
+        return gen_order_nonce(recv_time_ms)
 
     def _inject_owner_if_needed(self, params: Type[BaseParams]) -> Type[BaseParams]:
         """
@@ -219,7 +217,6 @@ class NadoBaseExecute:
         self,
         params: Type[BaseParams],
         use_order_nonce: bool,
-        is_trigger_order: bool = False,
     ) -> Type[BaseParams]:
         """
         Inject the nonce if needed.
@@ -233,15 +230,13 @@ class NadoBaseExecute:
         if params.nonce is not None:
             return params
         params.nonce = (
-            self.order_nonce(is_trigger_order=is_trigger_order)
+            self.order_nonce()
             if use_order_nonce
             else self.tx_nonce(subaccount_to_hex(params.sender))
         )
         return params
 
-    def prepare_execute_params(
-        self, params, use_order_nonce: bool, is_trigger_order: bool = False
-    ):
+    def prepare_execute_params(self, params, use_order_nonce: bool):
         """
         Prepares the parameters for execution by ensuring that both owner and nonce are correctly set.
 
@@ -253,7 +248,7 @@ class NadoBaseExecute:
         """
         params = deepcopy(params)
         params = self._inject_owner_if_needed(params)
-        params = self._inject_nonce_if_needed(params, use_order_nonce, is_trigger_order)
+        params = self._inject_nonce_if_needed(params, use_order_nonce)
         return params
 
     def _sign(
@@ -280,13 +275,9 @@ class NadoBaseExecute:
                 - For 'PLACE_ORDER', it's derived from the book address associated with the product_id.
                 - For other operations, it's the endpoint address.
         """
-        is_place_order = (
-            execute == NadoExecuteType.PLACE_ORDER
-        )
+        is_place_order = execute == NadoExecuteType.PLACE_ORDER
         if is_place_order and product_id is None:
-            raise ValueError(
-                "Missing `product_id` to sign place_order execute"
-            )
+            raise ValueError("Missing `product_id` to sign place_order execute")
         verifying_contract = (
             self.order_verifying_contract(product_id)
             if is_place_order and product_id

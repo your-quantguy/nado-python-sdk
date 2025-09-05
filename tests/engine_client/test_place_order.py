@@ -25,8 +25,14 @@ import pytest
 from nado_protocol.utils.exceptions import ExecuteFailedException
 
 from nado_protocol.utils.nonce import gen_order_nonce
-from nado_protocol.utils.order import gen_order_verifying_contract
+from nado_protocol.utils.order import (
+    gen_order_verifying_contract,
+    build_appendix,
+    OrderAppendixTriggerType,
+)
 from nado_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.expiration import OrderType
+from nado_protocol.utils.math import to_x18
 
 
 def test_place_order_params(senders: list[str], owners: list[str], order_params: dict):
@@ -183,7 +189,7 @@ def test_place_order_execute_success(
             amount=1000,
             expiration=1000,
             nonce=1000,
-            appendix=0
+            appendix=0,
         ),
     )
 
@@ -272,10 +278,7 @@ def test_place_order_execute_success(
 
 
 def test_place_order_execute_provide_full_params(
-    mock_post: MagicMock,
-    url: str,
-    chain_id: int,
-    private_keys: list[str]
+    mock_post: MagicMock, url: str, chain_id: int, private_keys: list[str]
 ):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -298,7 +301,11 @@ def test_place_order_execute_provide_full_params(
         "expiration": 10000,
     }
     signature = engine_client.sign(
-        NadoExecuteType.PLACE_ORDER, order_params, gen_order_verifying_contract(product_id), chain_id, signer
+        NadoExecuteType.PLACE_ORDER,
+        order_params,
+        gen_order_verifying_contract(product_id),
+        chain_id,
+        signer,
     )
     order_params["sender"] = bytes32_to_hex(order_params["sender"])
     res = engine_client.place_order(
@@ -313,3 +320,179 @@ def test_place_order_execute_provide_full_params(
     assert req.place_order.order.nonce == str(order_params["nonce"])
     assert req.place_order.order.expiration == str(order_params["expiration"])
     assert req.place_order.order.appendix == str(order_params["appendix"])
+
+
+def test_place_order_with_basic_appendix(senders: list[str], owners: list[str]):
+    """Test placing order with basic appendix functionality."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+
+    # Test with IOC order type
+    ioc_appendix = build_appendix(OrderType.IOC)
+    params = PlaceOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=-10000000000000000,
+            expiration=4611687701117784255,
+            appendix=ioc_appendix,
+        ),
+    )
+
+    assert params.order.appendix == ioc_appendix
+
+    # Test with reduce-only flag
+    reduce_only_appendix = build_appendix(OrderType.POST_ONLY, reduce_only=True)
+    params_reduce = PlaceOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=-10000000000000000,
+            expiration=4611687701117784255,
+            appendix=reduce_only_appendix,
+        ),
+    )
+
+    assert params_reduce.order.appendix == reduce_only_appendix
+
+
+def test_place_order_with_isolated_position_appendix(senders: list[str]):
+    """Test placing order with isolated position appendix."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+    margin = 1000000  # 1M units margin
+
+    isolated_appendix = build_appendix(
+        OrderType.POST_ONLY, isolated=True, reduce_only=False, isolated_margin=margin
+    )
+
+    params = PlaceOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=10000000000000000,  # Long position
+            expiration=4611687701117784255,
+            appendix=isolated_appendix,
+        ),
+    )
+
+    assert params.order.appendix == isolated_appendix
+
+
+def test_place_order_with_twap_appendix(senders: list[str]):
+    """Test placing order with TWAP appendix."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+
+    # Test regular TWAP
+    twap_appendix = build_appendix(
+        OrderType.DEFAULT,
+        trigger_type=OrderAppendixTriggerType.TWAP,
+        twap_times=10,
+        twap_slippage_frac=0.005,  # 0.5% slippage
+    )
+
+    params = PlaceOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=10000000000000000,
+            expiration=4611687701117784255,
+            appendix=twap_appendix,
+        ),
+    )
+
+    assert params.order.appendix == twap_appendix
+
+    # Test TWAP with custom amounts
+    twap_custom_appendix = build_appendix(
+        OrderType.DEFAULT,
+        reduce_only=True,
+        trigger_type=OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
+        twap_times=5,
+        twap_slippage_frac=0.01,  # 1% slippage
+    )
+
+    params_custom = PlaceOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=-10000000000000000,  # Close position
+            expiration=4611687701117784255,
+            appendix=twap_custom_appendix,
+        ),
+    )
+
+    assert params_custom.order.appendix == twap_custom_appendix
+
+
+def test_place_order_with_price_trigger_appendix(senders: list[str]):
+    """Test placing order with price trigger appendix."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+
+    trigger_appendix = build_appendix(
+        OrderType.IOC, reduce_only=True, trigger_type=OrderAppendixTriggerType.PRICE
+    )
+
+    params = PlaceOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=-5000000000000000,  # Partial close
+            expiration=4611687701117784255,
+            appendix=trigger_appendix,
+        ),
+    )
+
+    assert params.order.appendix == trigger_appendix
+
+
+def test_place_order_appendix_combinations(senders: list[str]):
+    """Test various valid appendix combinations."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+
+    # Test all order types with reduce-only
+    order_types = [OrderType.DEFAULT, OrderType.IOC, OrderType.FOK, OrderType.POST_ONLY]
+
+    for order_type in order_types:
+        appendix = build_appendix(order_type, reduce_only=True)
+
+        params = PlaceOrderParams(
+            product_id=product_id,
+            order=OrderParams(
+                sender=sender,
+                priceX18=28898000000000000000000,
+                amount=-10000000000000000,
+                expiration=4611687701117784255,
+                appendix=appendix,
+            ),
+        )
+
+        assert params.order.appendix == appendix
+
+    # Test isolated position with different order types
+    for order_type in [OrderType.DEFAULT, OrderType.POST_ONLY]:
+        isolated_appendix = build_appendix(
+            order_type, isolated=True, isolated_margin=to_x18(500000)
+        )
+
+        params = PlaceOrderParams(
+            product_id=product_id,
+            order=OrderParams(
+                sender=sender,
+                priceX18=28898000000000000000000,
+                amount=10000000000000000,
+                expiration=4611687701117784255,
+                appendix=isolated_appendix,
+            ),
+        )
+
+        assert params.order.appendix == isolated_appendix

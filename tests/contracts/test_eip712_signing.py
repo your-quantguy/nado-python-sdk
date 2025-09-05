@@ -10,11 +10,14 @@ from nado_protocol.contracts.eip712.sign import (
 )
 from nado_protocol.contracts.eip712.types import get_nado_eip712_type
 from nado_protocol.contracts.types import NadoTxType
-from nado_protocol.utils.order import gen_order_verifying_contract
+from nado_protocol.utils.order import gen_order_verifying_contract, build_appendix
+from nado_protocol.utils.expiration import OrderType
 import pytest
 
 
-def test_build_eip712_domain(endpoint_addr: str, chain_id: int, order_verifying_contracts: list[str]):
+def test_build_eip712_domain(
+    endpoint_addr: str, chain_id: int, order_verifying_contracts: list[str]
+):
     eip712_domain_endpoint_addr = get_nado_eip712_domain(
         verifying_contract=endpoint_addr, chain_id=chain_id
     )
@@ -62,7 +65,7 @@ def test_build_eip712_domain(endpoint_addr: str, chain_id: int, order_verifying_
                 {"name": "amount", "type": "int128"},
                 {"name": "expiration", "type": "uint64"},
                 {"name": "nonce", "type": "uint64"},
-                {"name": "appendix", "type": "int128"}
+                {"name": "appendix", "type": "int128"},
             ],
         ),
         (
@@ -182,7 +185,7 @@ def test_build_eip712_domain_type():
                 "amount": -10000000000000000,
                 "expiration": 4611687701117784255,
                 "nonce": 1764428860167815857,
-                "appendix": 0
+                "appendix": build_appendix(OrderType.DEFAULT),
             },
         ),
         (

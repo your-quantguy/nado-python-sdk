@@ -1,4 +1,3 @@
-import time
 import requests
 from functools import singledispatchmethod
 
@@ -37,6 +36,7 @@ from nado_protocol.utils.math import mul_x18, round_x18, to_x18
 from nado_protocol.utils.model import NadoBaseModel, is_instance_of_union
 from nado_protocol.utils.subaccount import Subaccount, SubaccountParams
 from nado_protocol.utils.execute import NadoBaseExecute
+from nado_protocol.utils.order import build_appendix
 
 
 class EngineExecuteClient(NadoBaseExecute):
@@ -177,10 +177,10 @@ class EngineExecuteClient(NadoBaseExecute):
             amount=params.market_order.amount,
             nonce=params.market_order.nonce,
             priceX18=round_x18(market_price_x18, price_increment_x18),
-            expiration=get_expiration_timestamp(
-                OrderType.FOK, int(time.time()) + 1000, bool(params.reduce_only)
+            expiration=get_expiration_timestamp(1000),
+            appendix=build_appendix(
+                OrderType.FOK, reduce_only=bool(params.reduce_only)
             ),
-            appendix=params.market_order.appendix,
         )
         return self.place_order(
             PlaceOrderParams(  # type: ignore
@@ -388,10 +388,8 @@ class EngineExecuteClient(NadoBaseExecute):
                         closing_price_x18,
                         product.book_info.price_increment_x18,
                     ),
-                    expiration=get_expiration_timestamp(
-                        OrderType.FOK, int(time.time()) + 1000, reduce_only=True
-                    ),
-                    appendix=0,
+                    expiration=get_expiration_timestamp(1000),
+                    appendix=build_appendix(OrderType.FOK, reduce_only=True),
                 ),
             )
         )

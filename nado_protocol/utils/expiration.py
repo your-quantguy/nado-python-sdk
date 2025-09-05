@@ -1,4 +1,5 @@
 from enum import IntEnum
+import time
 
 
 class OrderType(IntEnum):
@@ -8,38 +9,16 @@ class OrderType(IntEnum):
     POST_ONLY = 3
 
 
-def get_expiration_timestamp(
-    order_type: OrderType, expiration: int, reduce_only: bool = False
-) -> int:
+def get_expiration_timestamp(seconds_from_now: int) -> int:
     """
-    Encodes the order type into the expiration timestamp for special order types such as immediate-or-cancel.
+    Returns a timestamp that is seconds_from_now in the future.
+
+    Order types and reduce-only flags should now be set using build_appendix().
 
     Args:
-        order_type (OrderType): The type of order.
-
-        expiration (int): The expiration timestamp in UNIX seconds.
-
-        reduce_only (bool): When True, the order can only reduce the size of an existing position. Works only with IOC & FOK.
+        seconds_from_now (int): Number of seconds from now for expiration.
 
     Returns:
-        int: The properly formatted timestamp needed for the specified order type.
+        int: The expiration timestamp.
     """
-    expiration = int(expiration) | (order_type << 62)
-    if reduce_only:
-        expiration |= 1 << 61
-    return expiration
-
-
-def decode_expiration(expiration: int) -> tuple[OrderType, int]:
-    """
-    Decodes the expiration timestamp to retrieve the order type and original expiration timestamp.
-
-    Args:
-        expiration (int): The encoded expiration timestamp.
-
-    Returns:
-        Tuple[OrderType, int]: The decoded order type and the original expiration timestamp.
-    """
-    order_type: OrderType = OrderType(expiration >> 62)
-    exp_timestamp = expiration & ((1 << 62) - 1)
-    return order_type, exp_timestamp
+    return int(time.time()) + seconds_from_now
