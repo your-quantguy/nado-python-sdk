@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 import requests
 
@@ -182,7 +183,10 @@ class EngineQueryClient:
         )
 
     def get_subaccount_info(
-        self, subaccount: str, txs: Optional[list[QuerySubaccountInfoTx]] = None
+        self,
+        subaccount: str,
+        txs: Optional[list[QuerySubaccountInfoTx]] = None,
+        pre_state: Optional[bool] = None,
     ) -> SubaccountInfoData:
         """
         Query the engine for the state of a subaccount, including balances.
@@ -193,11 +197,26 @@ class EngineQueryClient:
             txs (list[QuerySubaccountInfoTx], optional): You can optionally provide a list of txs, to get an estimated view
             of what the subaccount state would look like if the transactions were applied.
 
+            pre_state (bool, optional): When True and txs are provided, returns the subaccount state before the
+            transactions were applied in the pre_state field. Defaults to False.
+
         Returns:
             SubaccountInfoData: Information about the specified subaccount.
         """
+        txns_str = None
+        if txs is not None:
+            txns_str = json.dumps([tx.dict() for tx in txs])
+
+        pre_state_str = None
+        if pre_state is not None:
+            pre_state_str = str(pre_state).lower()
+
         return ensure_data_type(
-            self.query(QuerySubaccountInfoParams(subaccount=subaccount, txs=txs)).data,
+            self.query(
+                QuerySubaccountInfoParams(
+                    subaccount=subaccount, txns=txns_str, pre_state=pre_state_str
+                )
+            ).data,
             SubaccountInfoData,
         )
 

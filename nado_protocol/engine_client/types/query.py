@@ -101,7 +101,8 @@ class QuerySubaccountInfoParams(NadoBaseModel):
 
     type = EngineQueryType.SUBACCOUNT_INFO.value
     subaccount: str
-    txs: Optional[list[QuerySubaccountInfoTx]]
+    txns: Optional[str]
+    pre_state: Optional[str]
 
 
 class QuerySubaccountOpenOrdersParams(NadoBaseModel):
@@ -299,6 +300,17 @@ class OrderData(NadoBaseModel):
     placed_at: str
 
 
+class PreState(NadoBaseModel):
+    """
+    Model for subaccount state before simulated transactions were applied.
+    """
+
+    healths: list[SubaccountHealth]
+    health_contributions: list[list[str]]
+    spot_balances: list[SpotProductBalance]
+    perp_balances: list[PerpProductBalance]
+
+
 class SubaccountInfoData(NadoBaseModel):
     """
     Model for detailed info about a subaccount, including balances.
@@ -314,6 +326,7 @@ class SubaccountInfoData(NadoBaseModel):
     perp_balances: list[PerpProductBalance]
     spot_products: list[SpotProduct]
     perp_products: list[PerpProduct]
+    pre_state: Optional[PreState]
 
     def parse_subaccount_balance(
         self, product_id: int
