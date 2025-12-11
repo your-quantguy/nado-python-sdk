@@ -30,7 +30,7 @@ class BaseParams(NadoBaseModel):
     """
 
     sender: Subaccount
-    nonce: Optional[int] = None
+    nonce: Optional[Union[int, str]] = None
 
     model_config = ConfigDict(validate_assignment=True)
 
@@ -82,7 +82,7 @@ class MarketOrderParams(BaseParams):
         nonce (Optional[int]): A unique number used to prevent replay attacks.
     """
 
-    amount: int
+    amount: Union[int, str]
 
 
 class OrderParams(MarketOrderParams):
@@ -101,9 +101,9 @@ class OrderParams(MarketOrderParams):
         appendix (int): Additional data or instructions related to the order. Use to encode order type and other related data.
     """
 
-    priceX18: int
-    expiration: int
-    appendix: int
+    priceX18: Union[int, str]
+    expiration: Union[int, str]
+    appendix: Union[int, str]
 
 
 class NadoBaseExecute:

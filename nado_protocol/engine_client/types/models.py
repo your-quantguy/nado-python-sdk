@@ -137,7 +137,7 @@ class SubaccountPosition(NadoBaseModel):
 
 
 # (price, amount)
-MarketLiquidity = Annotated[list[str], Field(min_length=2, max_length=2)]
+MarketLiquidity = Annotated[list[Union[str, float]], Field(min_length=2, max_length=2)]
 
 
 class Asset(NadoBaseModel):

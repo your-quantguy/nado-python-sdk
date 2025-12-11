@@ -301,7 +301,10 @@ class OrderData(NadoBaseModel):
     nonce: str
     unfilled_amount: str
     digest: str
-    placed_at: str
+    placed_at: Union[str, int]
+    order_type: Optional[str] = None
+    appendix: Optional[str] = None
+    id: Optional[int] = None
 
 
 class PreState(NadoBaseModel):
@@ -373,6 +376,7 @@ class SubaccountOpenOrdersData(NadoBaseModel):
     """
 
     sender: str
+    product_id: Optional[int] = None
     orders: list[OrderData]
 
 
