@@ -97,8 +97,8 @@ class EngineQueryClient:
             raise BadStatusCodeException(res.text)
         try:
             query_res = QueryResponse(**res.json())
-        except Exception:
-            raise QueryFailedException(res.text)
+        except Exception as e:
+            raise QueryFailedException(f"Failed to parse response: {e}. Response: {res.text}")
         if query_res.status != "success":
             raise QueryFailedException(res.text)
         return query_res

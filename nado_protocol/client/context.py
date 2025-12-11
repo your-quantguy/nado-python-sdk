@@ -76,8 +76,10 @@ def create_nado_client_context(
             trigger_client.endpoint_addr = contracts.endpoint_addr
             trigger_client.chain_id = int(contracts.chain_id)
     except Exception as e:
+        import traceback
         logging.warning(
-            f"Failed to setup engine client verifying contracts with error: {e}"
+            f"Failed to setup engine client verifying contracts with error: {e}\n"
+            f"Traceback: {traceback.format_exc()}"
         )
     return NadoClientContext(
         signer=signer,
