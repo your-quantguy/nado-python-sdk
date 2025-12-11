@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Literal, Optional, List, Union
 from enum import Enum
 
 from pydantic import field_validator
@@ -35,7 +35,7 @@ class ListTriggerOrdersParams(NadoBaseModel):
     Parameters for listing trigger orders
     """
 
-    type = "list_trigger_orders"
+    type: Literal["list_trigger_orders"] = "list_trigger_orders"
     tx: ListTriggerOrdersTx
     product_ids: Optional[List[int]] = None
     trigger_types: Optional[List[TriggerType]] = None
@@ -53,7 +53,7 @@ class ListTwapExecutionsParams(NadoBaseModel):
     Parameters for listing TWAP executions for a specific order
     """
 
-    type = "list_twap_executions"
+    type: Literal["list_twap_executions"] = "list_twap_executions"
     digest: str
 
 
