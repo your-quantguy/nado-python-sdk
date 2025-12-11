@@ -83,7 +83,7 @@ class NadoContracts:
         self.network = contracts_context.network
         self.w3 = Web3(Web3.HTTPProvider(node_url))
 
-        self.contracts_context = NadoContractsContext.parse_obj(contracts_context)
+        self.contracts_context = NadoContractsContext.model_validate(contracts_context)
         self.querier: Contract = self.w3.eth.contract(
             address=contracts_context.querier_addr, abi=load_abi(NadoAbiName.FQUERIER)  # type: ignore
         )
@@ -145,7 +145,7 @@ class NadoContracts:
         Returns:
             str: The transaction hash of the deposit operation.
         """
-        params = DepositCollateralParams.parse_obj(params)
+        params = DepositCollateralParams.model_validate(params)
         if params.referral_code is not None and params.referral_code.strip():
             return self.execute(
                 self.endpoint.functions.depositCollateralWithReferral(
@@ -357,7 +357,7 @@ class NadoContracts:
         """
         tx = func.build_transaction(self._build_tx_params(signer))
         signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=signer.key)
-        signed_tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        signed_tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         self.w3.eth.wait_for_transaction_receipt(signed_tx_hash)
         return signed_tx_hash.hex()
 

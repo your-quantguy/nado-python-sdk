@@ -1,7 +1,7 @@
 from nado_protocol.utils.enum import StrEnum
 from typing import Dict, List, Optional, Tuple, Type, Union
 
-from pydantic import Field, validator
+from pydantic import Field, ConfigDict
 from nado_protocol.indexer_client.types.models import (
     IndexerCandlestick,
     IndexerCandlesticksGranularity,
@@ -63,8 +63,7 @@ class IndexerBaseParams(NadoBaseModel):
     max_time: Optional[int]
     limit: Optional[int]
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
@@ -77,9 +76,7 @@ class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
     trigger_types: Optional[list[str]]
     isolated: Optional[bool]
 
-    class Config:
-        # Ensure this doesn't get confused with digest params
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
 
 class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
@@ -89,9 +86,7 @@ class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
 
     digests: list[str]
 
-    class Config:
-        # Ensure this doesn't get confused with subaccount params
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
 
 class IndexerMatchesParams(IndexerBaseParams):
@@ -165,9 +160,7 @@ class IndexerCandlesticksParams(IndexerBaseParams):
 
     product_id: int
     granularity: IndexerCandlesticksGranularity
-
-    class Config:
-        fields = {"idx": {"exclude": True}}
+    idx: Optional[int] = Field(default=None, exclude=True, alias="submission_idx")
 
 
 class IndexerFundingRateParams(NadoBaseModel):
@@ -295,9 +288,6 @@ class IndexerHistoricalOrdersRequest(NadoBaseModel):
     orders: Union[
         IndexerSubaccountHistoricalOrdersParams, IndexerHistoricalOrdersByDigestParams
     ]
-
-    class Config:
-        smart_union = True
 
 
 class IndexerMatchesRequest(NadoBaseModel):
@@ -699,7 +689,7 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
     }
 
     RequestClass, field_name = indexer_request_mapping[type(params)]
-    return RequestClass.parse_obj({field_name: params.dict(exclude_none=False)})  # type: ignore[attr-defined]
+    return RequestClass.model_validate({field_name: params.model_dump(exclude_none=False)})  # type: ignore[attr-defined]
 
 
 IndexerTickersData = Dict[str, IndexerTickerInfo]

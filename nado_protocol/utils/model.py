@@ -6,12 +6,13 @@ from typing import Any, Callable, Type, TypeVar, Union
 class NadoBaseModel(BaseModel):
     """
     This base model extends Pydantic's BaseModel and excludes fields with None
-    values by default when serializing via .dict() or .json()
+    values by default when serializing via .model_dump() or .model_dump_json()
     """
 
     def dict(self, **kwargs):
         """
         Convert model to dictionary, excluding None fields by default.
+        This is a compatibility wrapper for pydantic v2's model_dump().
 
         Args:
             kwargs: Arbitrary keyword arguments.
@@ -20,11 +21,12 @@ class NadoBaseModel(BaseModel):
             dict: The model as a dictionary.
         """
         kwargs.setdefault("exclude_none", True)
-        return super().dict(**kwargs)
+        return self.model_dump(**kwargs)
 
     def json(self, **kwargs):
         """
         Convert model to JSON, excluding None fields by default.
+        This is a compatibility wrapper for pydantic v2's model_dump_json().
 
         Args:
             kwargs: Arbitrary keyword arguments.
@@ -33,7 +35,7 @@ class NadoBaseModel(BaseModel):
             str: The model as a JSON string.
         """
         kwargs.setdefault("exclude_none", True)
-        return super().json(**kwargs)
+        return self.model_dump_json(**kwargs)
 
     def serialize_dict(self, fields: list[str], func: Callable):
         """
