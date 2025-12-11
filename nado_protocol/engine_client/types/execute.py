@@ -37,11 +37,11 @@ class PlaceOrderParams(SignatureParams):
         spot_leverage (Optional[bool]): An optional flag indicating whether leverage should be used for the order. By default, leverage is assumed.
     """
 
-    id: Optional[int]
+    id: Optional[int] = None
     product_id: int
     order: OrderParams
-    digest: Optional[str]
-    spot_leverage: Optional[bool]
+    digest: Optional[str] = None
+    spot_leverage: Optional[bool] = None
 
 
 class PlaceOrdersParams(NadoBaseModel):
@@ -56,7 +56,7 @@ class PlaceOrdersParams(NadoBaseModel):
     """
 
     orders: Sequence[PlaceOrderParams]
-    stop_on_failure: Optional[bool]
+    stop_on_failure: Optional[bool] = None
 
 
 class PlaceMarketOrderParams(SignatureParams):
@@ -77,9 +77,9 @@ class PlaceMarketOrderParams(SignatureParams):
 
     product_id: int
     market_order: MarketOrderParams
-    slippage: Optional[float]
-    spot_leverage: Optional[bool]
-    reduce_only: Optional[bool]
+    slippage: Optional[float] = None
+    spot_leverage: Optional[bool] = None
+    reduce_only: Optional[bool] = None
 
 
 class CancelOrdersParams(BaseParamsSigned):
@@ -99,7 +99,7 @@ class CancelOrdersParams(BaseParamsSigned):
 
     productIds: list[int]
     digests: list[Digest]
-    nonce: Optional[int]
+    nonce: Optional[int] = None
 
     @field_validator("digests")
     @classmethod
@@ -120,8 +120,8 @@ class CancelProductOrdersParams(BaseParamsSigned):
     """
 
     productIds: list[int]
-    digest: Optional[str]
-    nonce: Optional[int]
+    digest: Optional[str] = None
+    nonce: Optional[int] = None
 
 
 class CancelAndPlaceParams(NadoBaseModel):
@@ -152,7 +152,7 @@ class WithdrawCollateralParams(BaseParamsSigned):
 
     productId: int
     amount: int
-    spot_leverage: Optional[bool]
+    spot_leverage: Optional[bool] = None
 
 
 class LiquidateSubaccountParams(BaseParamsSigned):
@@ -195,7 +195,7 @@ class MintNlpParams(BaseParamsSigned):
     """
 
     quoteAmount: int
-    spot_leverage: Optional[bool]
+    spot_leverage: Optional[bool] = None
 
 
 class BurnNlpParams(BaseParamsSigned):
@@ -322,8 +322,8 @@ class TxRequest(NadoBaseModel):
 
     tx: dict
     signature: str
-    spot_leverage: Optional[bool]
-    digest: Optional[str]
+    spot_leverage: Optional[bool] = None
+    digest: Optional[str] = None
 
     @field_validator("tx")
     @classmethod
@@ -583,8 +583,8 @@ class PlaceOrdersItemResponse(NadoBaseModel):
     Data model for a single order in place orders response.
     """
 
-    digest: Optional[str]
-    error: Optional[str]
+    digest: Optional[str] = None
+    error: Optional[str] = None
 
 
 class PlaceOrdersResponse(NadoBaseModel):
@@ -631,13 +631,13 @@ class ExecuteResponse(NadoBaseModel):
     """
 
     status: ResponseStatus
-    signature: Optional[str]
-    data: Optional[ExecuteResponseData]
-    error_code: Optional[int]
-    error: Optional[str]
-    request_type: Optional[str]
-    req: Optional[dict]
-    id: Optional[int]
+    signature: Optional[str] = None
+    data: Optional[ExecuteResponseData] = None
+    error_code: Optional[int] = None
+    error: Optional[str] = None
+    request_type: Optional[str] = None
+    req: Optional[dict] = None
+    id: Optional[int] = None
 
 
 def to_execute_request(params: ExecuteParams) -> ExecuteRequest:

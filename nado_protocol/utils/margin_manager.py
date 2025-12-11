@@ -77,7 +77,7 @@ class CrossPositionMetrics(BaseModel):
     symbol: str
     position_size: Decimal
     notional_value: Decimal
-    est_pnl: Optional[Decimal]  # Estimated PnL (requires indexer data)
+    est_pnl: Optional[Decimal] = None  # Estimated PnL (requires indexer data)
     unsettled: Decimal  # Unsettled quote (v_quote_balance)
     margin_used: Decimal
     initial_health: Decimal

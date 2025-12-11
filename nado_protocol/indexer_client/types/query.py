@@ -59,9 +59,9 @@ class IndexerBaseParams(NadoBaseModel):
     Base parameters for the indexer queries.
     """
 
-    idx: Optional[int] = Field(alias="submission_idx")
-    max_time: Optional[int]
-    limit: Optional[int]
+    idx: Optional[int] = Field(default=None, alias="submission_idx")
+    max_time: Optional[int] = None
+    limit: Optional[int] = None
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -71,10 +71,10 @@ class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
     Parameters for querying historical orders by subaccounts.
     """
 
-    subaccounts: Optional[list[str]]
-    product_ids: Optional[list[int]]
-    trigger_types: Optional[list[str]]
-    isolated: Optional[bool]
+    subaccounts: Optional[list[str]] = None
+    product_ids: Optional[list[int]] = None
+    trigger_types: Optional[list[str]] = None
+    isolated: Optional[bool] = None
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
@@ -94,9 +94,9 @@ class IndexerMatchesParams(IndexerBaseParams):
     Parameters for querying matches.
     """
 
-    subaccounts: Optional[list[str]]
-    product_ids: Optional[list[int]]
-    isolated: Optional[bool]
+    subaccounts: Optional[list[str]] = None
+    product_ids: Optional[list[int]] = None
+    isolated: Optional[bool] = None
 
 
 class IndexerEventsRawLimit(NadoBaseModel):
@@ -123,11 +123,11 @@ class IndexerEventsParams(IndexerBaseParams):
     Parameters for querying events.
     """
 
-    subaccounts: Optional[list[str]]
-    product_ids: Optional[list[int]]
-    event_types: Optional[list[IndexerEventType]]
-    isolated: Optional[bool]
-    limit: Optional[IndexerEventsLimit]  # type: ignore
+    subaccounts: Optional[list[str]] = None
+    product_ids: Optional[list[int]] = None
+    event_types: Optional[list[IndexerEventType]] = None
+    isolated: Optional[bool] = None
+    limit: Optional[IndexerEventsLimit] = None  # type: ignore
 
 
 class IndexerProductSnapshotsParams(IndexerBaseParams):
@@ -141,7 +141,7 @@ class IndexerProductSnapshotsParams(IndexerBaseParams):
 class IndexerMarketSnapshotInterval(NadoBaseModel):
     count: int
     granularity: int
-    max_time: Optional[int]
+    max_time: Optional[int] = None
 
 
 class IndexerMarketSnapshotsParams(NadoBaseModel):
@@ -150,7 +150,7 @@ class IndexerMarketSnapshotsParams(NadoBaseModel):
     """
 
     interval: IndexerMarketSnapshotInterval
-    product_ids: Optional[list[int]]
+    product_ids: Optional[list[int]] = None
 
 
 class IndexerCandlesticksParams(IndexerBaseParams):
@@ -216,9 +216,9 @@ class IndexerSubaccountsParams(NadoBaseModel):
     Parameters for querying subaccounts.
     """
 
-    address: Optional[str]
-    limit: Optional[int]
-    start: Optional[int]
+    address: Optional[str] = None
+    limit: Optional[int] = None
+    start: Optional[int] = None
 
 
 class IndexerQuotePriceParams(NadoBaseModel):
@@ -236,7 +236,7 @@ class IndexerInterestAndFundingParams(NadoBaseModel):
 
     subaccount: str
     product_ids: list[int]
-    max_idx: Optional[Union[str, int]]
+    max_idx: Optional[Union[str, int]] = None
     limit: int
 
 
