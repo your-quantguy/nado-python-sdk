@@ -488,7 +488,6 @@ class SymbolsData(NadoBaseModel):
 ProductSymbolsData = list[ProductSymbol]
 
 QueryResponseData = Union[
-    StatusData,
     ContractsData,
     NoncesData,
     OrderData,
@@ -505,8 +504,9 @@ QueryResponseData = Union[
     FeeRatesData,
     HealthGroupsData,
     LinkedSignerData,
-    ProductSymbolsData,
     IsolatedPositionsData,
+    ProductSymbolsData,  # list type - put after models
+    StatusData,  # StrEnum - must be last to avoid matching dicts as strings
 ]
 
 
